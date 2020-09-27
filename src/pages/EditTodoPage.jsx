@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from "react";
 import { Layout, Card, Button, Spin, Input, PageHeader } from "antd";
 import { Link } from "react-router-dom";
-import axios from "axios";
+import { API, Auth } from "aws-amplify";
 import CommentsList from "../components/CommentsList";
 
 const { Content } = Layout;
@@ -16,38 +16,51 @@ const EditTodoPage = ({ location, history }) => {
   const [todo, setTodo] = useState(initialTodoState);
 
   // loading state
-  const initialLoadingState = false;
-  const [loadingState, setloadingState] = useState(initialLoadingState);
+  const [loadingComplete, setLoadingComplete] = useState(false);
 
   // current username state
-  // const [currentUsername, setCurrentUsername] = useState("");
+  const [currnetUsername, setCurrnetUsername] = useState("");
 
   const todoId = location.pathname.split("/")[2];
-  const apiEndpoint = process.env.REACT_APP_API_ENDPOINT;
 
   async function fetchTodo() {
     try {
-      const res = await axios.get(`${apiEndpoint}/todos/${todoId}`);
-      const todo = res.data.Item;
+      const res = await API.get("todos", `/todos/${todoId}`);
+      const todo = res.Item;
       const name = todo.name.S;
       const description = todo.description.S;
       setTodo({ name, description });
-      setloadingState({ loadingState: true });
+      setLoadingComplete({ loadingComplete: true });
     } catch (err) {
       console.log("error fetching todo");
     }
   }
 
-  //   async function editTodo() {
-  //     try {
-  //       if (!formState.name || !formState.description) return;
-  //       const updates = { ...formState, todoId };
-  //       await API.graphql(graphqlOperation(updateTodo, { input: updates }));
-  //       history.push("/");
-  //     } catch (err) {
-  //       console.log("error updating todo:", err);
-  //     }
-  //   }
+  async function fetchCurrnetUsername() {
+    try {
+      const res = await Auth.currentUserInfo();
+      setCurrnetUsername(res.username);
+    } catch (err) {
+      console.log(err);
+      console.log("error fetching current username");
+    }
+  }
+
+  async function editTodo() {
+    try {
+      if (!formState.name || !formState.description) return;
+      const config = {
+        body: formState,
+        headers: {
+          "Content-Type": "application/json"
+        }
+      };
+      await API.put("todos", `/todos/${todoId}`, config);
+      history.push("/");
+    } catch (err) {
+      console.log("error updating todo:", err);
+    }
+  }
 
   function setInput(key, value) {
     setFormState({ ...formState, [key]: value });
@@ -55,17 +68,18 @@ const EditTodoPage = ({ location, history }) => {
 
   // When component mounts, fetchTodo by todoId
   useEffect(() => {
+    fetchCurrnetUsername();
     fetchTodo();
   }, []);
 
   // When todo updates, set form state
-  //   useEffect(() => {
-  //     if (todo.name) {
-  //       const name = todo.name;
-  //       const description = todo.description;
-  //       setFormState({ name, description });
-  //     }
-  //   }, [todo]);
+  useEffect(() => {
+    if (todo.name) {
+      const name = todo.name;
+      const description = todo.description;
+      setFormState({ name, description });
+    }
+  }, [todo]);
 
   return (
     <div>
@@ -77,9 +91,9 @@ const EditTodoPage = ({ location, history }) => {
             style={styles.header}
           />
         </div>
-        {loadingState ? (
+        {loadingComplete ? (
           <div>
-            {/* <div>
+            <div>
               <Input
                 onChange={event => setInput("name", event.target.value)}
                 value={formState.name}
@@ -95,7 +109,7 @@ const EditTodoPage = ({ location, history }) => {
               <Button onClick={editTodo} type="primary" style={styles.submit}>
                 Save
               </Button>
-            </div> */}
+            </div>
 
             <Card title={todo.name} style={{ wtodoIdth: 300 }}>
               <p>{todo.description}</p>
@@ -105,7 +119,7 @@ const EditTodoPage = ({ location, history }) => {
                 </Link>
               </Button>
             </Card>
-            <CommentsList todoId={todoId} />
+            <CommentsList todoId={todoId} username={currnetUsername} />
           </div>
         ) : (
           <Spin />

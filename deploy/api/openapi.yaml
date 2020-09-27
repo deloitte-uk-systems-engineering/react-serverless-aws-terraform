@@ -22,8 +22,41 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/Empty"
+      security:
+        - sigv4: []
       x-amazon-apigateway-integration:
         uri: "${lambda_uri_get_todo_by_id}"
+        responses:
+          default:
+            statusCode: "200"
+            responseParameters:
+              method.response.header.Access-Control-Allow-Origin: "'*'"
+        passthroughBehavior: "when_no_match"
+        httpMethod: "POST"
+        contentHandling: "CONVERT_TO_TEXT"
+        type: "aws_proxy"
+    put:
+      parameters:
+        - name: "todoID"
+          in: "path"
+          required: true
+          schema:
+            type: "string"
+      responses:
+        200:
+          description: "200 response"
+          headers:
+            Access-Control-Allow-Origin:
+              schema:
+                type: "string"
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Empty"
+      security:
+        - sigv4: []
+      x-amazon-apigateway-integration:
+        uri: "${lambda_uri_update_todo_by_id}"
         responses:
           default:
             statusCode: "200"
@@ -51,6 +84,8 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/Empty"
+      security:
+        - sigv4: []
       x-amazon-apigateway-integration:
         type: "aws_proxy"
         uri: "${lambda_uri_delete_todo_by_id}"
@@ -85,7 +120,7 @@ paths:
           default:
             statusCode: "200"
             responseParameters:
-              method.response.header.Access-Control-Allow-Methods: "'DELETE,GET,OPTIONS'"
+              method.response.header.Access-Control-Allow-Methods: "'DELETE,GET,PUT,OPTIONS'"
               method.response.header.Access-Control-Allow-Headers: "'Content-Type,X-Amz-Date,Authorization,X-Api-Key,X-Amz-Security-Token'"
               method.response.header.Access-Control-Allow-Origin: "'*'"
         requestTemplates:
@@ -111,6 +146,8 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/Empty"
+      security:
+        - sigv4: []
       x-amazon-apigateway-integration:
         type: "aws_proxy"
         uri: "${lambda_uri_delete_comment_by_id}"
@@ -165,6 +202,8 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/Empty"
+      security:
+        - sigv4: []
       x-amazon-apigateway-integration:
         uri: "${lambda_uri_get_comments}"
         responses:
@@ -188,6 +227,8 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/Empty"
+      security:
+        - sigv4: []
       x-amazon-apigateway-integration:
         uri: "${lambda_uri_create_comment}"
         responses:
@@ -198,7 +239,7 @@ paths:
         passthroughBehavior: "when_no_match"
         httpMethod: "POST"
         contentHandling: "CONVERT_TO_TEXT"
-        type: "aws"
+        type: "aws_proxy"
     options:
       responses:
         200:
@@ -242,6 +283,8 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/Empty"
+      security:
+        - sigv4: []
       x-amazon-apigateway-integration:
         uri: "${lambda_uri_get_todos}"
         responses:
@@ -265,6 +308,8 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/Empty"
+      security:
+        - sigv4: []
       x-amazon-apigateway-integration:
         uri: "${lambda_uri_create_todo}"
         responses:
@@ -275,7 +320,7 @@ paths:
         passthroughBehavior: "when_no_match"
         httpMethod: "POST"
         contentHandling: "CONVERT_TO_TEXT"
-        type: "aws"
+        type: "aws_proxy"
     options:
       responses:
         200:
@@ -311,3 +356,9 @@ components:
     Empty:
       title: "Empty Schema"
       type: "object"
+  securitySchemes:
+    sigv4:
+      type: "apiKey"
+      name: "Authorization"
+      in: "header"
+      x-amazon-apigateway-authtype: "awsSigv4"

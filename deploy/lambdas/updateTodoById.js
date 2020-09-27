@@ -7,28 +7,38 @@ AWS.config.update({ region: "us-east-1" });
 // Create DynamoDB service object
 const ddb = new AWS.DynamoDB({ apiVersion: "2012-08-10" });
 
-exports.handler = function(event, context, callback) {
+exports.handler = (event, context, callback) => {
+  const todoId = event.path.split("/")[2];
   let responseCode = 200;
   let responseBody = "";
-  const params = {
-    TableName: "comments",
-    Item: {
-      commentId: { S: event.requestContext.requestId },
-      identityId: { S: event.requestContext.identity.cognitoIdentityId },
-      username: { S: JSON.parse(event.body).username },
-      content: { S: JSON.parse(event.body).content },
-      todoId: { S: JSON.parse(event.body).todoId }
-    }
-  };
 
-  // Call DynamoDB to add the item to the table
-  ddb.putItem(params, function(err, data) {
+  const params = {
+    ExpressionAttributeNames: {
+      "#N": "name",
+      "#D": "description"
+    },
+    ExpressionAttributeValues: {
+      ":n": {
+        S: JSON.parse(event.body).name
+      },
+      ":d": {
+        S: JSON.parse(event.body).description
+      }
+    },
+    Key: {
+      todoId: {
+        S: todoId
+      }
+    },
+    ReturnValues: "ALL_NEW",
+    TableName: "todos",
+    UpdateExpression: "SET #N = :n, #D = :d"
+  };
+  ddb.updateItem(params, function(err, data) {
     if (err) {
-      console.log("Error", err);
       responseCode = 500;
       responseBody = err;
     } else {
-      console.log("Success", data);
       responseBody = data;
     }
     const response = {

@@ -36,7 +36,10 @@ resource "aws_codepipeline" "react-serverless-codepipeline" {
   name     = "react-serverless-codepipeline"
   role_arn = aws_iam_role.react_serverless_codepipeline_role.arn
   depends_on = [
-    aws_api_gateway_deployment.api_gateway_deployment
+    aws_api_gateway_deployment.api_gateway_deployment,
+    aws_cognito_user_pool.app_user_pool,
+    aws_cognito_user_pool_client.app_user_pool_client,
+    aws_cognito_identity_pool.app_identity_pool
   ]
 
   artifact_store {
@@ -121,6 +124,21 @@ resource "aws_codebuild_project" "react-serverless-codebuild" {
     environment_variable {
       name  = "REACT_APP_API_ENDPOINT"
       value = aws_api_gateway_deployment.api_gateway_deployment.invoke_url
+    }
+
+    environment_variable {
+      name  = "REACT_APP_USER_POOL_ID"
+      value = aws_cognito_user_pool.app_user_pool.id
+    }
+
+    environment_variable {
+      name  = "REACT_APP_APP_CLIENT_ID"
+      value = aws_cognito_user_pool_client.app_user_pool_client.id
+    }
+
+    environment_variable {
+      name  = "REACT_APP_IDENTITY_POOL_ID"
+      value = aws_cognito_identity_pool.app_identity_pool.id
     }
   }
 
