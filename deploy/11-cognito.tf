@@ -17,10 +17,6 @@ resource "aws_cognito_user_pool_client" "app_user_pool_client" {
   user_pool_id = aws_cognito_user_pool.app_user_pool.id
 
   supported_identity_providers = ["COGNITO"]
-  # callback_urls                        = ["https://www.example.com"]
-  # allowed_oauth_flows_user_pool_client = true
-  # allowed_oauth_flows                  = ["code", "implicit"]
-  # allowed_oauth_scopes                 = ["phone", "email", "openid", "profile", "aws.cognito.signin.user.admin"]
 }
 
 resource "aws_cognito_identity_pool" "app_identity_pool" {
@@ -64,7 +60,7 @@ resource "aws_iam_role_policy" "id_pool_authenticated_role_policy" {
   name = "authenticated_policy"
   role = aws_iam_role.id_pool_authenticated_role.id
   depends_on = [
-    aws_api_gateway_deployment.api_gateway_deployment
+    aws_api_gateway_deployment.app
   ]
 
   policy = <<EOF
@@ -77,7 +73,7 @@ resource "aws_iam_role_policy" "id_pool_authenticated_role_policy" {
         "execute-api:Invoke"
       ],
       "Resource": [
-        "${aws_api_gateway_rest_api.react-serverless.execution_arn}/*"
+        "${aws_api_gateway_rest_api.app.execution_arn}/*"
       ]
     }
   ]
@@ -93,14 +89,3 @@ resource "aws_cognito_identity_pool_roles_attachment" "id_pool_roles_attachment"
   }
 }
 
-output "user_pool_id" {
-  value = aws_cognito_user_pool.app_user_pool.id
-}
-
-output "user_pool_client_id" {
-  value = aws_cognito_user_pool_client.app_user_pool_client.id
-}
-
-output "identity_pool_id" {
-  value = aws_cognito_identity_pool.app_identity_pool.id
-}
