@@ -1,25 +1,34 @@
-terraform {
-  required_providers {
-    aws = {
-      source = "hashicorp/aws"
-    }
-  }
+
+# get todos lambda
+data "archive_file" "get_todos_zip" {
+  type        = "zip"
+  source_file = "lambdas/getTodos.js"
+  output_path = "lambdas/getTodos.zip"
 }
 
 resource "aws_lambda_function" "get_todos" {
-  function_name = "GetTodos"
-  filename      = "lambdas/getTodos.zip"
-  handler       = "getTodos.handler"
-  runtime       = "nodejs10.x"
-  role          = aws_iam_role.lambda_exec.arn
+  function_name    = "GetTodos"
+  filename         = data.archive_file.get_todos_zip.output_path
+  source_code_hash = data.archive_file.get_todos_zip.output_base64sha256
+  handler          = "getTodos.handler"
+  runtime          = "nodejs10.x"
+  role             = aws_iam_role.lambda_exec.arn
+}
+
+# get todo by ID lambda
+data "archive_file" "get_todo_by_id_zip" {
+  type        = "zip"
+  source_file = "lambdas/getTodoById.js"
+  output_path = "lambdas/getTodoById.zip"
 }
 
 resource "aws_lambda_function" "get_todo_by_id" {
-  function_name = "GetTodoById"
-  filename      = "lambdas/getTodoById.zip"
-  handler       = "getTodoById.handler"
-  runtime       = "nodejs10.x"
-  role          = aws_iam_role.lambda_exec.arn
+  function_name    = "GetTodoById"
+  filename         = data.archive_file.get_todo_by_id_zip.output_path
+  source_code_hash = data.archive_file.get_todo_by_id_zip.output_base64sha256
+  handler          = "getTodoById.handler"
+  runtime          = "nodejs10.x"
+  role             = aws_iam_role.lambda_exec.arn
 }
 
 resource "aws_lambda_function" "update_todo_by_id" {
@@ -153,22 +162,12 @@ resource "aws_iam_role_policy" "lambda_policy" {
                 "dynamodb:PutItem"
             ],
             "Resource": [
-              "arn:aws:dynamodb:*:*:table/todos",
-              "arn:aws:dynamodb:*:*:table/comments",
-              "arn:aws:dynamodb:*:*:table/todos/index/*",
-              "arn:aws:dynamodb:*:*:table/comments/index/*",
-              "arn:aws:dynamodb:*:*:table/likes",
-              "arn:aws:dynamodb:*:*:table/likes/index/*"
+              "${aws_dynamodb_table.todos.arn}*",
+              "${aws_dynamodb_table.comments.arn}*",
+              "${aws_dynamodb_table.likes.arn}*"
             ]
         }
     ]
 }
 EOF
 }
-
-
-
-
-
-
-

@@ -6,7 +6,7 @@ A to-do list app which allows users to create, and read to-do's from DynamoDB
 
 App URL [here](http://matlau-aws-react-serverless2.s3-website-us-east-1.amazonaws.com/)
 
-![AWS Architecture](images/aws_react_serverless3.JPG)
+![AWS Architecture](images/aws_react_serverless4.JPG)
 
 ## Pre-requisite
 
@@ -45,8 +45,6 @@ terraform destroy # destroys AWS stack
 ```
 
 - When prompted for `github_token`, provide the value and hit Return. Alternatively, create a [local environment variable](https://www.terraform.io/docs/language/values/variables.html#environment-variables) named `TF_VAR_github_token`
-
-- To add a new Lambda function i.e. `updateTodo.js`, navigate to `deploy/lambdas` and run `zip updateTodo.zip updateTodo.js` to generate the zip file for the Lambda function
 
 ## Contributing
 
